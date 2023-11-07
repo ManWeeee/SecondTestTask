@@ -12,6 +12,7 @@ public class Cell : MonoBehaviour, IInitializable
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private ColorHolder colorHolder;
     [SerializeField] private CellAnimator _animator;
+    [SerializeField] private int cellMergeCost = 1;
     private CellAnimation _currentAnimation;
     
     public int X { get; private set; }
@@ -55,6 +56,7 @@ public class Cell : MonoBehaviour, IInitializable
     public void MergeWithCell(Cell cell)
     {
         _animator.SmoothMerging(this, cell, true);
+        UIController.OnScoreChanged.Invoke(cellMergeCost);
         cell.IncreaseValue();
         SetTile(0);
         
