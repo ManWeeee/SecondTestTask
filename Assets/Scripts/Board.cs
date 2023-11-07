@@ -14,6 +14,7 @@ public class Board : MonoBehaviour
     [SerializeField] private int _fieldSize = 4;
     [SerializeField] private int maxStartCellAmount;
     [SerializeField] private int minStartCellAmount;
+    private bool _hasEmptyCells;
     
     private float _cellSize = 75f;
     
@@ -23,7 +24,7 @@ public class Board : MonoBehaviour
     private Cell _cellPrefab;
     private Cell[,] _cells = null;
 
-    private bool anyCellMoved;
+    private bool _anyCellMoved;
 
     [Inject]
     public void Construct(Cell cellPrefab, CellFactory cellFactory)
@@ -31,26 +32,37 @@ public class Board : MonoBehaviour
         _cellFactory = cellFactory;
         _cellPrefab = cellPrefab;
     }
+
+    private void Awake()
+    {
+        PlayerInput.SwipeEvent += MoveOnInput;
+    }
     
     private void Start()
     {
         _rectTransform = GetComponent<RectTransform>();
-        PlayerInput.SwipeEvent += MoveOnInput;
         GenerateBoard();
     }
 
     public void MoveOnInput(Vector2 direction)
     {
-        anyCellMoved = false;
+        _anyCellMoved = false;
         ResetAllCellFlags();
         
         if(direction != Vector2.zero)
             Move(direction);
         
-        if (anyCellMoved)
-        {
+        if (_anyCellMoved)
             GenerateRandomCell(1);
-            //TODO method that will check if game is finished for some reason
+        
+        _hasEmptyCells = HasEmptyCell();
+        if (!_hasEmptyCells)
+        {
+            Debug.Log($"{CheckHorizontalGameOver()} : {CheckVerticalGameOver()}");
+            if (CheckHorizontalGameOver() && CheckVerticalGameOver())
+            {
+                Game.OnGameOver?.Invoke();
+            }
         }
     }
 
@@ -74,7 +86,7 @@ public class Board : MonoBehaviour
                 if (cellToMerge)
                 {
                     cell.MergeWithCell(cellToMerge);
-                    anyCellMoved = true;
+                    _anyCellMoved = true;
                     
                     continue;
                 }
@@ -83,10 +95,38 @@ public class Board : MonoBehaviour
                 if(emptyCell)
                 {
                     cell.MoveToCell(emptyCell);
-                    anyCellMoved = true;
+                    _anyCellMoved = true;
                 }
             }
         }
+    }
+    
+    private bool CheckHorizontalGameOver() {
+        for (int y = 0; y < _fieldSize; y++)
+        {
+            for (int x = 0; x < _fieldSize - 1; x++)
+            {
+                if (_cells[y, x].Value == _cells[y, x + 1].Value)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private bool CheckVerticalGameOver() {
+        for (int x = 0; x < _fieldSize; x++)
+        {
+            for (int y = 0; y < _fieldSize - 1; y++)
+            {
+                if (_cells[y, x].Value == _cells[y + 1, x].Value)
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     
     private Cell FindCellToMerge(Cell cell, Vector2 direction)
@@ -186,5 +226,14 @@ public class Board : MonoBehaviour
         for(int y = 0; y < _fieldSize; y++)
             for(int x = 0; x < _fieldSize; x++)
                 _cells[y,x].ResetFlag();
+    }
+
+    private bool HasEmptyCell()
+    {
+        for (int y = 0; y < _fieldSize; y++)
+            for (int x = 0; x < _fieldSize; x++)
+                if (_cells[y, x].IsEmpty)
+                    return true; 
+        return false;
     }
 }

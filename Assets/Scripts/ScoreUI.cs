@@ -14,7 +14,12 @@ public class ScoreUI : MonoBehaviour
         UIController.OnScoreChanged += AddPoint;
     }
 
-    public void AddPoint(int point)
+    private void OnDestroy()
+    {
+        UIController.OnScoreChanged -= AddPoint;
+    }
+
+    private void AddPoint(int point)
     {
         _points += point;
         SetPoints();
