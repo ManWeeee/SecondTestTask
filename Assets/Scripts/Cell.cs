@@ -1,14 +1,18 @@
 using System;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
+using IInitializable = Zenject.IInitializable;
 
 public class Cell : MonoBehaviour, IInitializable
 {
     [SerializeField] private Image background;
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private ColorHolder colorHolder;
+    [SerializeField] private CellAnimator _animator;
+    private CellAnimation _currentAnimation;
     
     public int X { get; private set; }
     public int Y { get; private set; }
@@ -16,12 +20,16 @@ public class Cell : MonoBehaviour, IInitializable
     public int Number => IsEmpty == true ? 0 : (int)Math.Pow(2, Value);
     public bool IsEmpty => Value == 0;
     public bool HasMerged { get; private set; }
+    public Image Background => background;
+    public TextMeshProUGUI Text => text;
     public float GetSize => background.rectTransform.sizeDelta.x;
+    public CellAnimator Animator => _animator;
     
     [Inject] 
-    public void Construct(ColorHolder holder)
+    public void Construct(ColorHolder holder, CellAnimator cellAnimator)
     {
         this.colorHolder = holder;
+        _animator = cellAnimator;
     }
     
     public void Initialize()
@@ -37,7 +45,6 @@ public class Cell : MonoBehaviour, IInitializable
         
         //TODO make some changes to score through some object
         
-        UpdateTile();
     }
 
     public void ResetFlag()
@@ -47,18 +54,18 @@ public class Cell : MonoBehaviour, IInitializable
 
     public void MergeWithCell(Cell cell)
     {
+        _animator.SmoothMerging(this, cell, true);
         cell.IncreaseValue();
         SetTile(0);
         
-        UpdateTile();
     }
 
     public void MoveToCell(Cell target)
     {
-        target.SetTile(Value);
+        _animator.SmoothMerging(this, target, false);
+        target.SetTile(Value, false);
         SetTile(0);
         
-        UpdateTile();
     }
     
     public void SetTile(int x, int y, int value)
@@ -70,13 +77,14 @@ public class Cell : MonoBehaviour, IInitializable
         UpdateTile();
     }
 
-    public void SetTile(int value)
+    public void SetTile(int value, bool updateUI = true)
     {
         Value = value;
-        UpdateTile();
+        if(updateUI)
+            UpdateTile();
     }
 
-    private void UpdateTile()
+    public void UpdateTile()
     {
         text.text = IsEmpty ? "" : Number.ToString();
         
@@ -85,4 +93,15 @@ public class Cell : MonoBehaviour, IInitializable
         background.color = colorHolder[Value];
     }
 
+    public void SetAnimation(CellAnimation animation)
+    {
+        _currentAnimation = animation;
+    }
+
+    public void CancelAniamtion()
+    {
+        if (_currentAnimation)
+            _currentAnimation.Destroy();
+        
+    }
 }

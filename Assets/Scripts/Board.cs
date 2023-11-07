@@ -31,27 +31,21 @@ public class Board : MonoBehaviour
         _cellFactory = cellFactory;
         _cellPrefab = cellPrefab;
     }
-
-    private void Update()
+    
+    private void Start()
     {
-        #if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.W))
-            MoveOnInput(Vector2.up);
-        else if (Input.GetKeyDown(KeyCode.A))
-            MoveOnInput(Vector2.left);
-        else if (Input.GetKeyDown(KeyCode.S))
-            MoveOnInput(Vector2.down);
-        else if (Input.GetKeyDown(KeyCode.D))
-            MoveOnInput(Vector2.right);
-        #endif
+        _rectTransform = GetComponent<RectTransform>();
+        PlayerInput.SwipeEvent += MoveOnInput;
+        GenerateBoard();
     }
 
-    private void MoveOnInput(Vector2 direction)
+    public void MoveOnInput(Vector2 direction)
     {
         anyCellMoved = false;
         ResetAllCellFlags();
         
-        Move(direction);
+        if(direction != Vector2.zero)
+            Move(direction);
         
         if (anyCellMoved)
         {
@@ -67,7 +61,6 @@ public class Board : MonoBehaviour
 
         for (int y = 0; y < _fieldSize; y++)
         {
-
             for (int x = startXYIndex; x >= 0 && x < _fieldSize; x -= dir)
             {
 
@@ -131,12 +124,6 @@ public class Board : MonoBehaviour
 
         return emptyCell;
     }
-    
-    private void Start()
-    {
-        _rectTransform = GetComponent<RectTransform>();
-        GenerateBoard();
-    }
 
     private void CreateBoard()
     {
@@ -190,6 +177,7 @@ public class Board : MonoBehaviour
             }
 
             _cells[verticalIndex,horizontalIndex].SetTile(1);
+            _cells[verticalIndex,horizontalIndex].Animator.SmoothApearance(_cells[verticalIndex,horizontalIndex]);
         }
     }
 
