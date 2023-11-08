@@ -1,5 +1,5 @@
+using UnityEngine;
 using Zenject;
-using Object = UnityEngine.Object;
 
 public class CellFactory : IFactory<Cell>
 {
@@ -12,6 +12,7 @@ public class CellFactory : IFactory<Cell>
     public Cell Create()
     {
         var instance = _diContainer.Resolve<Cell>();
+        _diContainer.Inject(instance);
         return Object.Instantiate(instance);
     }
 }

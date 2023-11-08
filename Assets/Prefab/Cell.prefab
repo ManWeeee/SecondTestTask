@@ -187,8 +187,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   background: {fileID: 3098863483468141188}
   text: {fileID: 3961579978521657560}
-  colorHolder: {fileID: 3032971288371028604, guid: 3e33f47940b10e545b3a1e86dc506e64, type: 3}
-  _animator: {fileID: 5744662872877286188, guid: d4ecbb0861f4b9c46bdf027f5db1a83c, type: 3}
+  colorHolder: {fileID: 0}
+  _animator: {fileID: 0}
+  cellMergeCost: 1
 --- !u!222 &1603396850643692937
 CanvasRenderer:
   m_ObjectHideFlags: 0
